@@ -12,9 +12,9 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
-# Example schemas (replace with your own):
+# Example schemas (you can keep or remove if not needed)
 
 class User(BaseModel):
     """
@@ -38,11 +38,42 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# AI Business Dashboard related schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class DatasetIngest(BaseModel):
+    """
+    Tracks dataset ingest requests and metadata
+    Collection name: "datasetingest"
+    """
+    name: str = Field(..., description="Dataset name")
+    source: str = Field(..., description="Source of the data e.g., 'csv', 's3', 'api'")
+    fields: List[str] = Field(default_factory=list, description="List of field names")
+    rows: int = Field(0, ge=0, description="Number of rows ingested")
+    notes: Optional[str] = Field(None, description="Optional notes")
+
+class ForecastRequest(BaseModel):
+    """
+    Forecast request payload and results summary
+    Collection name: "forecastrequest"
+    """
+    metric: str = Field(..., description="Metric to forecast, e.g., 'revenue'")
+    horizon_days: int = Field(30, ge=1, le=365, description="Forecast horizon in days")
+    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata/context")
+
+class RecommendationRequest(BaseModel):
+    """
+    Recommendation request details
+    Collection name: "recommendationrequest"
+    """
+    objective: str = Field(..., description="Business objective, e.g., 'increase_conversion'")
+    constraints: Optional[List[str]] = Field(default_factory=list, description="List of constraints")
+    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional context")
+
+class ChatMessage(BaseModel):
+    """
+    Chat messages exchanged with the assistant
+    Collection name: "chatmessage"
+    """
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str = Field(..., description="Message content")
+    session_id: Optional[str] = Field(None, description="Conversation/session id")
